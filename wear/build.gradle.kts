@@ -2,11 +2,14 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt.android)
-    id("kotlin-kapt")
+    alias(libs.plugins.legacy.kapt)
     alias(libs.plugins.kotlin.serialization)
+}
+
+base {
+    archivesName.set("Battery-Tracker-Wear")
 }
 
 android {
@@ -22,7 +25,6 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-
     }
 
     buildTypes {
@@ -33,14 +35,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-    }
-    applicationVariants.all {
-        val variant = this
-        variant.outputs.map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-            .forEach { output ->
-                val outputFileName = "Battery-Tracker-Wear-${variant.buildType.name}-${variant.versionName}.apk"
-                output.outputFileName = outputFileName
-            }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -57,9 +51,6 @@ android {
 //            storePassword = properties.getProperty("KEY_STORE_PASSWORD") ?: ""
 //        }
 //    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     buildFeatures {
         compose = true
     }
@@ -74,8 +65,6 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
-
-
         }
 //        release {
 //            isMinifyEnabled = true
@@ -88,13 +77,19 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+    }
+}
+
 dependencies {
     implementation(libs.play.services.wearable)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material)
-    implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.material.icons.extended)
 
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.activity.compose)
@@ -103,9 +98,9 @@ dependencies {
     implementation(libs.androidx.tiles.material)
     implementation(libs.horologist.compose.tools)
     implementation(libs.horologist.tiles)
-    implementation (libs.hilt.android)
-    kapt (libs.hilt.compiler)
-    implementation (libs.androidx.hilt.navigation.compose)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 //    implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
@@ -114,6 +109,4 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.compose.material3)
-
-
 }

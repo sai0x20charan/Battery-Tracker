@@ -5,23 +5,20 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
     id("com.google.gms.google-services")
-    id("kotlin-kapt")
+    alias(libs.plugins.legacy.kapt)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.mikepenz.aboutlibrary)
     alias(libs.plugins.google.firebase.crashlytics)
+}
 
-
+base {
+    archivesName.set("Battery-Tracker-Mobile")
 }
 
 android {
-
-
-
-
     namespace = "com.charan.batterytracker"
     compileSdk = 35
 
@@ -50,15 +47,7 @@ android {
     }
     buildFeatures {
         buildConfig = true
-        compose =true
-    }
-    applicationVariants.all {
-        val variant = this
-        variant.outputs.map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-            .forEach { output ->
-                val outputFileName = "Battery-Tracker-Mobile-${variant.buildType.name}-${variant.versionName}.apk"
-                output.outputFileName = outputFileName
-            }
+        compose = true
     }
 
 //    signingConfigs {
@@ -73,14 +62,10 @@ android {
 //        }
 //    }
 
-
-
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
-
-
         }
 //        release {
 //            isMinifyEnabled = true
@@ -95,9 +80,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     hilt { enableAggregatingTask = false }
     packaging {
         resources {
@@ -109,11 +91,17 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
 
-   implementation(libs.material)
+    implementation(libs.material)
 
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
@@ -131,41 +119,35 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.glance)
-    implementation (libs.accompanist.swiperefresh)
+    implementation(libs.accompanist.swiperefresh)
     implementation(libs.androidx.material3.android)
 
     // For AppWidgets support
-    implementation (libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.appwidget)
     debugImplementation(libs.leakcanary.android)
 
-
-
     implementation(libs.androidx.navigation.compose)
-    implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
-    implementation (libs.okhttp)
-    implementation (libs.logging.interceptor)
-    implementation (libs.play.services.wearable)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+    implementation(libs.play.services.wearable)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation (libs.version.tracker.android.library)
-    implementation (libs.hilt.android)
-    kapt (libs.hilt.compiler)
-    implementation (libs.androidx.hilt.navigation.compose)
-    implementation (libs.accompanist.permissions)
-    implementation (libs.androidx.hilt.work)
+    implementation(libs.version.tracker.android.library)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.kotlinx.serialization.json)
-    implementation (libs.aboutlibraries.core)
+    implementation(libs.aboutlibraries.core)
     implementation(libs.aboutlibraries.compose.m3)
 
-
-
-
-    wearApp(project(":wear"))
     implementation(libs.androidx.work.runtime)
 }

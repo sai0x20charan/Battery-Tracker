@@ -1,12 +1,13 @@
 [versions]
 accompanistPermissions = "0.37.2"
 accompanistSwiperefresh = "0.34.0"
-agp = "8.7.3"
+agp = "9.0.1"
 composeMaterial3 = "1.5.0-beta03"
 converterGson = "2.11.0"
 glance = "1.1.1"
 hiltWork = "1.2.0"
 kotlin = "2.1.20"
+ksp = "2.1.20-2.0.1"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -16,7 +17,7 @@ kotlinxSerializationJson = "1.8.0"
 leakcanaryAndroid = "2.14"
 lifecycleViewmodelCompose = "2.9.0"
 
-hiltAndroid = "2.56.1"
+hiltAndroid = "2.60.1"
 hiltNavigationCompose = "1.2.0"
 
 loggingInterceptor = "4.9.0"
@@ -107,17 +108,12 @@ aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibrariesCore" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 
-
-
-
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-compose-compiler = {id ="org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin"}
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-hilt-android = {id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid"}
-mikepenz-aboutlibrary = {id = "com.mikepenz.aboutlibraries.plugin",version.ref = "aboutlibrariesCore"}
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
+mikepenz-aboutlibrary = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibrariesCore" }
 google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlytics" }
-
-
-
+legacy-kapt = { id = "com.android.legacy-kapt", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
