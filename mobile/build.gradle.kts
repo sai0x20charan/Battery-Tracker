@@ -20,14 +20,18 @@ base {
 
 android {
     namespace = "com.charan.batterytracker"
-    compileSdk = 35
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 0
+        }
+    }
 
     defaultConfig {
         applicationId = "com.charan.batterytracker"
         minSdk = 30
-        targetSdk = 35
-        versionCode = 5
-        versionName = "1.5"
+        targetSdk = 37
+        versionCode = 1
+        versionName = "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
