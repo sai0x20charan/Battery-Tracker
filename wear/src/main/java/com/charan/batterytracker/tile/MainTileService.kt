@@ -1,10 +1,8 @@
 package com.charan.batterytracker.tile
 
 import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.protolayout.ColorBuilders.argb
+import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.ResourceBuilders
 import androidx.wear.protolayout.TimelineBuilders
@@ -15,8 +13,6 @@ import androidx.wear.protolayout.material.layouts.PrimaryLayout
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
-import com.google.android.horologist.compose.tools.LayoutRootPreview
-import com.google.android.horologist.compose.tools.buildDeviceParameters
 import com.google.android.horologist.tiles.SuspendingTileService
 
 private const val RESOURCES_VERSION = "0"
@@ -48,18 +44,16 @@ class MainTileService : SuspendingTileService() {
 }
 
 private fun tileLayout(context: Context): LayoutElementBuilders.LayoutElement {
-    return PrimaryLayout.Builder(buildDeviceParameters(context.resources))
+    val displayMetrics = context.resources.displayMetrics
+    val deviceParameters = DeviceParametersBuilders.DeviceParameters.Builder()
+        .setScreenWidthDp(displayMetrics.widthPixels)
+        .setScreenHeightDp(displayMetrics.heightPixels)
+        .build()
+    return PrimaryLayout.Builder(deviceParameters)
         .setContent(
             Text.Builder(context, "Hello World!")
                 .setColor(argb(Colors.DEFAULT.onSurface))
                 .setTypography(Typography.TYPOGRAPHY_CAPTION1)
                 .build()
         ).build()
-}
-
-
-@Composable
-@Preview
-fun TilePreview() {
-    LayoutRootPreview(root = tileLayout(LocalContext.current))
 }
