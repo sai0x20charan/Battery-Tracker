@@ -59,8 +59,7 @@ android {
 //            keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
 //            storeFile = file(properties.getProperty("KEY_LOCATION") ?: "")
 //            storePassword = properties.getProperty("KEY_STORE_PASSWORD") ?: ""
-//        }
-//    }
+//        }\n//    }
 
     buildTypes {
         debug {
@@ -150,4 +149,5 @@ dependencies {
     implementation(libs.aboutlibraries.compose.m3)
 
     implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.datastore.preferences)
 }
