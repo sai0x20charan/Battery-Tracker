@@ -29,15 +29,12 @@ android {
         }
     }
 
-    val vCode = providers.gradleProperty("versionCode").map { it.toInt() }.getOrElse(1)
-    val vName = providers.gradleProperty("versionName").getOrElse("0.0.1")
-
     defaultConfig {
         applicationId = "com.charan.batterytracker"
         minSdk = 30
         targetSdk = 37
-        versionCode = vCode
-        versionName = vName
+        versionCode = 1
+        versionName = "0.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true

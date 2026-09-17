@@ -70,7 +70,7 @@ jobs:
           echo "API_KEY=${{ secrets.API_KEY }}" >> local.properties
 
       - name: Build Release
-        run: ./gradlew assembleRelease bundleRelease -PversionName="${VERSION_NAME}" -PversionCode="${VERSION_CODE}"
+        run: ./gradlew assembleRelease bundleRelease
 
       - name: Rename Release Artifacts
         run: |
