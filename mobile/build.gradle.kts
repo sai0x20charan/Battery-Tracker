@@ -29,17 +29,19 @@ android {
         }
     }
 
+    val vCode = providers.gradleProperty("versionCode").map { it.toInt() }.getOrElse(1)
+    val vName = providers.gradleProperty("versionName").getOrElse("0.0.1")
+
     defaultConfig {
         applicationId = "com.charan.batterytracker"
         minSdk = 30
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = vCode
+        versionName = vName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
-
     }
 
     val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -100,37 +102,6 @@ android {
     }
     lint {
         disable.add("NullSafeMutableLiveData")
-    }
-}
-
-androidComponents {
-    onVariants { variant ->
-        val variantName = variant.name
-        val capitalizedVariantName = variantName.replaceFirstChar { it.uppercase() }
-        variant.outputs.forEach { output ->
-            if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
-                val versionName = android.defaultConfig.versionName ?: "1.0"
-                output.outputFileName.set("$appName-$variantName-$versionName.apk")
-            }
-        }
-        tasks.register("renameAab$capitalizedVariantName") {
-            doLast {
-                val versionName = android.defaultConfig.versionName ?: "1.0"
-                val bundleDir = layout.buildDirectory.dir("outputs/bundle/$variantName").get().asFile
-
-                bundleDir.listFiles()
-                    ?.filter { it.extension == "aab" }
-                    ?.forEach { aab ->
-                        val newName = "$appName-$variantName-$versionName.aab"
-                        aab.renameTo(File(bundleDir, newName))
-                        println("Renamed AAB to: $newName")
-                    }
-            }
-        }
-        afterEvaluate {
-            val bundleTaskName = "bundle$capitalizedVariantName"
-            tasks.findByName(bundleTaskName)?.finalizedBy("renameAab$capitalizedVariantName")
-        }
     }
 }
 
