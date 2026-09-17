@@ -23,8 +23,8 @@ android {
         applicationId = "com.charan.batterytracker"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 1
+        versionName = "0.0.1"
         vectorDrawables {
             useSupportLibrary = true
         }
