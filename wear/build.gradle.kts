@@ -10,11 +10,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.charan.batteryTracker"
+    namespace = "com.charan.batterytracker"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "dev.charan.batteryTracker"
+        applicationId = "com.charan.batterytracker"
         minSdk = 26
         targetSdk = 34
         versionCode = 5
@@ -46,17 +46,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    signingConfigs {
-        create("release") {
-            val properties = Properties().apply {
-                load(project.rootProject.file("local.properties").inputStream())
-            }
-            keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
-            keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
-            storeFile = file(properties.getProperty("KEY_LOCATION") ?: "")
-            storePassword = properties.getProperty("KEY_STORE_PASSWORD") ?: ""
-        }
-    }
+//    signingConfigs {
+//        create("release") {
+//            val properties = Properties().apply {
+//                load(project.rootProject.file("local.properties").inputStream())
+//            }
+//            keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
+//            keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
+//            storeFile = file(properties.getProperty("KEY_LOCATION") ?: "")
+//            storePassword = properties.getProperty("KEY_STORE_PASSWORD") ?: ""
+//        }
+//    }
     kotlinOptions {
         jvmTarget = "1.8"
     }
@@ -77,14 +77,14 @@ android {
 
 
         }
-        release {
-            isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("release")
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+//        release {
+//            isMinifyEnabled = true
+//            signingConfig = signingConfigs.getByName("release")
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
+//        }
     }
 }
 

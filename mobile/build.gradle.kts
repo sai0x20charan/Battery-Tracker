@@ -22,11 +22,11 @@ android {
 
 
 
-    namespace = "dev.charan.batteryTracker"
+    namespace = "com.charan.batterytracker"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "dev.charan.batteryTracker"
+        applicationId = "com.charan.batterytracker"
         minSdk = 30
         targetSdk = 35
         versionCode = 5
@@ -37,12 +37,15 @@ android {
         }
 
         val properties = Properties()
-        properties.load(project.rootProject.file("local.properties").inputStream())
+        val localPropFile = project.rootProject.file("local.properties")
+        if (localPropFile.exists()) {
+            properties.load(localPropFile.inputStream())
+        }
         val apiKey = properties.getProperty("API_KEY") ?: ""
         buildConfigField(
             type = "String",
             name = "API_KEY",
-            value = apiKey
+            value = "\"$apiKey\""
         )
     }
     buildFeatures {
@@ -58,17 +61,17 @@ android {
             }
     }
 
-    signingConfigs {
-        create("release") {
-            val properties = Properties().apply {
-                load(project.rootProject.file("local.properties").inputStream())
-            }
-            keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
-            keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
-            storeFile = file(properties.getProperty("KEY_LOCATION") ?: "")
-            storePassword = properties.getProperty("KEY_STORE_PASSWORD") ?: ""
-        }
-    }
+//    signingConfigs {
+//        create("release") {
+//            val properties = Properties().apply {
+//                load(project.rootProject.file("local.properties").inputStream())
+//            }
+//            keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
+//            keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
+//            storeFile = file(properties.getProperty("KEY_LOCATION") ?: "")
+//            storePassword = properties.getProperty("KEY_STORE_PASSWORD") ?: ""
+//        }
+//    }
 
 
 
@@ -79,14 +82,14 @@ android {
 
 
         }
-        release {
-            isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("release")
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+//        release {
+//            isMinifyEnabled = true
+//            signingConfig = signingConfigs.getByName("release")
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
+//        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
