@@ -26,21 +26,27 @@ jobs:
           java-version: 17
 
       - name: Restore keystore and google services
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           mkdir -p mobile/src/release
 
           # Keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > mobile/src/release/batterytracker_release.jks
+          echo "$KEYSTORE_BASE64" | base64 --decode > mobile/src/release/batterytracker_release.jks
 
           # google-services
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > mobile/google-services.json
+          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > mobile/google-services.json
           cp mobile/google-services.json mobile/src/release/google-services.json 2>/dev/null || true
 
           # keystore.properties
           echo "storeFile=mobile/src/release/batterytracker_release.jks" > keystore.properties
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" >> keystore.properties
+          echo "keyAlias=$KEY_ALIAS" >> keystore.properties
+          echo "keyPassword=$KEY_PASSWORD" >> keystore.properties
 
       - name: Determine Targets and Version Info
         run: |
@@ -103,7 +109,7 @@ jobs:
 
       - name: Debug Target & Version Info
         run: |
-          echo "Tag: ${{ github.ref_name }}"
+          echo "Tag: $GITHUB_REF_NAME"
           echo "Target: $TARGET"
           echo "Build Mobile: $BUILD_MOBILE"
           echo "Build Wear: $BUILD_WEAR"
@@ -114,9 +120,11 @@ jobs:
           echo "Release Title: $RELEASE_TITLE"
 
       - name: Create local.properties
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
         run: |
           touch local.properties
-          echo "API_KEY=${{ secrets.API_KEY }}" >> local.properties
+          echo "API_KEY=$API_KEY" >> local.properties
 
       - name: Build Release
         run: ./gradlew $GRADLE_TASKS
