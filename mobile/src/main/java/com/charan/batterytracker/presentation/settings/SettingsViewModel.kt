@@ -2,28 +2,27 @@ package com.charan.batterytracker.presentation.settings
 
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import com.charan.batterytracker.data.prefs.SharedPref
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
+import com.charan.batterytracker.data.repository.DataStoreRepository
 import com.charan.batterytracker.data.repository.WidgetRepository
 import com.charan.batterytracker.utils.AppConstants
 import com.charan.batterytracker.utils.SettingsUtils
-import com.charan.batterytracker.widgets.Material3widget
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val sharedPref: SharedPref,
+    private val dataStore: DataStoreRepository,
     private val settingsUtils: SettingsUtils,
     private val widgetRepository: WidgetRepository
 ): ViewModel() {
@@ -32,52 +31,44 @@ class SettingsViewModel @Inject constructor(
     val state = _state.asStateFlow()
     private val _effect = MutableSharedFlow<SettingsEffect>()
     val effect = _effect.asSharedFlow()
+
     init {
         setInitialValues()
+        observeSettingsDataStore()
     }
 
     fun onEvent(settingsEvent: SettingsEvent){
         when(settingsEvent){
             is SettingsEvent.onChangeDarkMode -> {
                 changeDarkMode()
-
             }
-            is SettingsEvent.onChangeHeadPhonesBatteryLevel ->{
+            is SettingsEvent.onChangeHeadPhonesBatteryLevel -> {
                 changeMinHeadphoneBatteryLevel(settingsEvent.level)
-
             }
             is SettingsEvent.onChangePhoneName -> {
                 updatePhoneName(settingsEvent.name)
-
             }
             is SettingsEvent.onChangeWearOsBatteryLevel -> {
                 changeMinWearOsBatteryLevel(settingsEvent.level)
-
             }
             SettingsEvent.onCheckForUpdate -> {
-
             }
             SettingsEvent.onGithubOpen -> {
                 openGithub()
             }
-
             SettingsEvent.onChangePhonenNameSubmit -> {
                 phoneNameSubmit()
-
             }
             is SettingsEvent.onBluetoothPermissionChange -> {
                 changeBluetoothPermission(settingsEvent.showRational)
-
             }
             is SettingsEvent.onNotificationPermissionChange -> {
                 changeNotificationPermission(settingsEvent.showRational)
-
             }
-
             SettingsEvent.onBluetoothPermissionGrant -> {
                 changeBluetoothState()
             }
-            SettingsEvent.onNotificationPermissionGrant ->{
+            SettingsEvent.onNotificationPermissionGrant -> {
                 if(!settingsUtils.isNotificationPermissionGranted()) {
                     changeNotificationState()
                 }
@@ -89,19 +80,34 @@ class SettingsViewModel @Inject constructor(
         _state.update {
             it.copy(
                 isNearByPermissionGranted = settingsUtils.isBluetoothPermissionGranted(),
-                isNotificationPermissionGranted = sharedPref.isNotificationAllowed && settingsUtils.isNotificationPermissionGranted(),
-                isDarkModeEnabled = sharedPref.isDarkModeEnabled,
-                headPhonesMinimumBattery = sharedPref.minHeadphonesBattery?.toFloat() ?: 20f,
-                wearOsMinimumBattery = sharedPref.minWearosBattery?.toFloat() ?: 20f,
-                phoneName = sharedPref.deviceName ?: Build.MODEL
-
+                isNotificationPermissionGranted = settingsUtils.isNotificationPermissionGranted(),
+                phoneName = Build.MODEL
             )
         }
-
     }
 
+    private fun observeSettingsDataStore() = viewModelScope.launch {
+        combine(
+            dataStore.getIsDarkModeEnabled,
+            dataStore.getIsNotificationAllowed,
+            dataStore.getDeviceName,
+            dataStore.getMinWearOsBattery,
+            dataStore.getMinHeadphonesBattery
+        ) { isDark, isNotif, name, wearMin, headMin ->
+            _state.update {
+                it.copy(
+                    isDarkModeEnabled = isDark,
+                    isNotificationPermissionGranted = isNotif && settingsUtils.isNotificationPermissionGranted(),
+                    phoneName = name,
+                    wearOsMinimumBattery = wearMin.toFloatOrNull() ?: 20f,
+                    headPhonesMinimumBattery = headMin.toFloatOrNull() ?: 20f,
+                    isNearByPermissionGranted = settingsUtils.isBluetoothPermissionGranted()
+                )
+            }
+        }.collect {}
+    }
 
-    private fun updatePhoneName( name : String){
+    private fun updatePhoneName(name: String){
         _state.update {
             it.copy(
                 phoneName = name
@@ -110,44 +116,46 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun phoneNameSubmit() = viewModelScope.launch(Dispatchers.IO){
-        sharedPref.deviceName = _state.value.phoneName
+        dataStore.setDeviceName(_state.value.phoneName)
         widgetRepository.updateWidget()
     }
 
-    private fun changeMinHeadphoneBatteryLevel(value : Float) {
+    private fun changeMinHeadphoneBatteryLevel(value: Float) = viewModelScope.launch {
+        val intVal = value.roundToInt()
         _state.update {
             it.copy(
-                headPhonesMinimumBattery = value.roundToInt().toFloat()
+                headPhonesMinimumBattery = intVal.toFloat()
             )
         }
-        sharedPref.minHeadphonesBattery = value.roundToInt().toString()
+        dataStore.setMinHeadphonesBattery(intVal.toString())
     }
 
-    private fun changeMinWearOsBatteryLevel(value: Float){
+    private fun changeMinWearOsBatteryLevel(value: Float) = viewModelScope.launch {
+        val intVal = value.roundToInt()
         _state.update {
             it.copy(
-                wearOsMinimumBattery = value.roundToInt().toFloat()
-
+                wearOsMinimumBattery = intVal.toFloat()
             )
         }
-        sharedPref.minWearosBattery = value.roundToInt().toString()
+        dataStore.setMinWearOsBattery(intVal.toString())
     }
 
-    private fun changeDarkMode(){
+    private fun changeDarkMode() = viewModelScope.launch {
+        val newDarkMode = !_state.value.isDarkModeEnabled
         _state.update {
             it.copy(
-                isDarkModeEnabled = !it.isDarkModeEnabled
+                isDarkModeEnabled = newDarkMode
             )
         }
-        if(_state.value.isDarkModeEnabled) {
+        dataStore.setIsDarkModeEnabled(newDarkMode)
+        if (newDarkMode) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
         }
     }
 
-    private fun changeNotificationPermission(showRational : Boolean) = viewModelScope.launch{
+    private fun changeNotificationPermission(showRational: Boolean) = viewModelScope.launch{
         changeNotificationState()
         if(!settingsUtils.isNotificationPermissionGranted()){
             if(!showRational){
@@ -158,7 +166,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun changeBluetoothPermission(showRational : Boolean) = viewModelScope.launch{
+    private fun changeBluetoothPermission(showRational: Boolean) = viewModelScope.launch{
         if(_state.value.isNearByPermissionGranted){
             changeBluetoothState()
         } else {
@@ -170,28 +178,25 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-
     private fun openSettings(){
         viewModelScope.launch {
             _effect.emit(SettingsEffect.OpenSettings)
         }
-
     }
 
-    private fun changeNotificationState() {
-        _state.update { currentState ->
-            val newPermissionState = if (!currentState.isNotificationPermissionGranted) {
-                settingsUtils.isNotificationPermissionGranted()
-            } else {
-               false
-            }
+    private fun changeNotificationState() = viewModelScope.launch {
+        val newPermissionState = if (!_state.value.isNotificationPermissionGranted) {
+            settingsUtils.isNotificationPermissionGranted()
+        } else {
+            false
+        }
 
+        _state.update { currentState ->
             currentState.copy(isNotificationPermissionGranted = newPermissionState)
         }
 
-        sharedPref.isNotificationAllowed = _state.value.isNotificationPermissionGranted
+        dataStore.setIsNotificationAllowed(newPermissionState)
     }
-
 
     private fun changeBluetoothState(){
         _state.update {
@@ -199,12 +204,9 @@ class SettingsViewModel @Inject constructor(
                 isNearByPermissionGranted = settingsUtils.isBluetoothPermissionGranted()
             )
         }
-
     }
 
     private fun openGithub() = viewModelScope.launch{
         _effect.emit(SettingsEffect.OpenGithub(AppConstants.GITHUB_LINK))
-
     }
-
 }

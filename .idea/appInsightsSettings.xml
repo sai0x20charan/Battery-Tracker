@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="dev.charan.batteryTracker.debug" />
-                  <option name="mobileSdkAppId" value="1:947216601935:android:e6b903249c89d1339eab3a" />
-                  <option name="projectId" value="battery-tracker-debug" />
-                  <option name="projectNumber" value="947216601935" />
+                  <option name="appId" value="com.charan.batterytracker.debug" />
+                  <option name="mobileSdkAppId" value="1:000000000000:android:000000000001" />
+                  <option name="projectId" value="battery-tracker" />
+                  <option name="projectNumber" value="000000000000" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
