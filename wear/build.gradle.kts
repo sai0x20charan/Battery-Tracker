@@ -1,3 +1,4 @@
+import java.io.File
 import java.util.Properties
 
 plugins {
@@ -7,6 +8,8 @@ plugins {
     alias(libs.plugins.legacy.kapt)
     alias(libs.plugins.kotlin.serialization)
 }
+
+val appName = "Battery Tracker Wear"
 
 base {
     archivesName.set("Battery-Tracker-Wear")
@@ -20,39 +23,59 @@ android {
         applicationId = "com.charan.batterytracker"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 1
+        versionName = "0.0.1"
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties()
+
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(keystorePropertiesFile.inputStream())
+    }
+
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = keystoreProperties.getProperty("storeFile")?.let { path ->
+                    val f = file(path)
+                    if (f.exists()) f else rootProject.file(path)
+                }
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+            resValue("string", "app_name", "Battery Tracker")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.findByName("release")
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+            isDebuggable = true
+            resValue("string", "app_name", "Battery Tracker-Debug")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-//    signingConfigs {
-//        create("release") {
-//            val properties = Properties().apply {
-//                load(project.rootProject.file("local.properties").inputStream())
-//            }
-//            keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
-//            keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
-//            storeFile = file(properties.getProperty("KEY_LOCATION") ?: "")
-//            storePassword = properties.getProperty("KEY_STORE_PASSWORD") ?: ""
-//        }
-//    }
+
     buildFeatures {
         compose = true
+        resValues = true
     }
 
     packaging {
@@ -61,20 +84,6 @@ android {
         }
     }
     hilt { enableAggregatingTask = false }
-    buildTypes {
-        debug {
-            applicationIdSuffix = ".debug"
-            isDebuggable = true
-        }
-//        release {
-//            isMinifyEnabled = true
-//            signingConfig = signingConfigs.getByName("release")
-//            proguardFiles(
-//                getDefaultProguardFile("proguard-android-optimize.txt"),
-//                "proguard-rules.pro"
-//            )
-//        }
-    }
 }
 
 kotlin {

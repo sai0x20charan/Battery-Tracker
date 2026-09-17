@@ -1,6 +1,7 @@
 import com.android.build.api.dsl.Lint
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import org.jetbrains.kotlin.gradle.utils.property
+import java.io.File
 import java.util.Properties
 
 plugins {
@@ -13,6 +14,8 @@ plugins {
     alias(libs.plugins.mikepenz.aboutlibrary)
     alias(libs.plugins.google.firebase.crashlytics)
 }
+
+val appName = "Battery Tracker"
 
 base {
     archivesName.set("Battery-Tracker-Mobile")
@@ -36,53 +39,58 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
 
-        val properties = Properties()
-        val localPropFile = project.rootProject.file("local.properties")
-        if (localPropFile.exists()) {
-            properties.load(localPropFile.inputStream())
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties()
+
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(keystorePropertiesFile.inputStream())
+    }
+
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = keystoreProperties.getProperty("storeFile")?.let { path ->
+                    val f = file(path)
+                    if (f.exists()) f else rootProject.file(path)
+                }
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
         }
-        val apiKey = properties.getProperty("API_KEY") ?: ""
-        buildConfigField(
-            type = "String",
-            name = "API_KEY",
-            value = "\"$apiKey\""
-        )
     }
-    buildFeatures {
-        buildConfig = true
-        compose = true
-    }
-
-//    signingConfigs {
-//        create("release") {
-//            val properties = Properties().apply {
-//                load(project.rootProject.file("local.properties").inputStream())
-//            }
-//            keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
-//            keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
-//            storeFile = file(properties.getProperty("KEY_LOCATION") ?: "")
-//            storePassword = properties.getProperty("KEY_STORE_PASSWORD") ?: ""
-//        }\n//    }
 
     buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            resValue("string", "app_name", appName)
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.findByName("release")
+        }
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
+            resValue("string", "app_name", "$appName-Debug")
         }
-//        release {
-//            isMinifyEnabled = true
-//            signingConfig = signingConfigs.getByName("release")
-//            proguardFiles(
-//                getDefaultProguardFile("proguard-android-optimize.txt"),
-//                "proguard-rules.pro"
-//            )
-//        }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    buildFeatures {
+        buildConfig = true
+        compose = true
+        resValues = true
+    }
+
     hilt { enableAggregatingTask = false }
     packaging {
         resources {

@@ -13,6 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+/keystore.properties
+*.jks
+*.keystore
 /mobile/google-services.json
 /mobile/src/debug
 /mobile/src/release
