@@ -1,0 +1,163 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - 'v*-beta'
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Restore keystore and google services
+        run: |
+          mkdir -p mobile/src/release
+
+          # Keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > mobile/src/release/batterytracker_release.jks
+
+          # google-services
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > mobile/google-services.json
+          cp mobile/google-services.json mobile/src/release/google-services.json 2>/dev/null || true
+
+          # keystore.properties
+          echo "storeFile=mobile/src/release/batterytracker_release.jks" > keystore.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+
+      - name: Determine Release Type
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          # Strip 'v' from tag
+          VERSION_NAME=${GITHUB_REF_NAME#v}
+          VERSION_CODE=${GITHUB_RUN_NUMBER}
+
+          # Check for beta tag
+          if [[ "$VERSION_NAME" == *-beta ]]; then
+            echo "IS_BETA=true" >> $GITHUB_ENV
+            echo "APK_SUFFIX=-beta" >> $GITHUB_ENV
+            VERSION_NAME=${VERSION_NAME%-beta}
+          else
+            echo "IS_BETA=false" >> $GITHUB_ENV
+            echo "APK_SUFFIX=" >> $GITHUB_ENV
+          fi
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+
+      - name: Debug Version Info
+        run: |
+          echo "IS_BETA=$IS_BETA"
+          echo "APK_SUFFIX=$APK_SUFFIX"     
+
+      - name: Create local.properties
+        run: |
+          touch local.properties
+          echo "API_KEY=${{ secrets.API_KEY }}" >> local.properties
+
+      - name: Build Release
+        run: ./gradlew assembleRelease bundleRelease
+
+      - name: Rename APK for Beta
+        if: ${{ env.IS_BETA == 'true' }}
+        run: |
+          echo "Renaming beta APKs..."
+          for file in mobile/build/outputs/apk/release/*.apk wear/build/outputs/apk/release/*.apk; do
+            if [ -f "$file" ]; then
+              mv "$file" "${file%.apk}-beta.apk"
+            fi
+          done
+
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-aab
+          path: |
+            mobile/build/outputs/bundle/release/*.aab
+            wear/build/outputs/bundle/release/*.aab
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-apk
+          path: |
+            mobile/build/outputs/apk/release/*.apk
+            wear/build/outputs/apk/release/*.apk
+
+      - name: Prepare Release Notes
+        run: |
+          RELEASE_DATE=$(date +'%Y-%m-%d')
+          CHANGELOG_PATH="mobile/src/main/assets/CHANGELOG.md"
+
+          echo "# Version $VERSION_NAME" > release_notes.md
+          echo "" >> release_notes.md
+          echo "Released: $RELEASE_DATE" >> release_notes.md
+          echo "" >> release_notes.md
+
+          if [ -f "$CHANGELOG_PATH" ]; then
+            cat "$CHANGELOG_PATH" >> release_notes.md
+          else
+            echo "No changelog found." >> release_notes.md
+          fi
+
+          mkdir -p whatsnew
+          if [ -f "$CHANGELOG_PATH" ]; then
+            # Remove '## ' headers for Google Play release notes (plain text)
+            sed 's/^## //' "$CHANGELOG_PATH" | head -c 500 > whatsnew/whatsnew-en-US
+          else
+            echo "Released on $RELEASE_DATE" > whatsnew/whatsnew-en-US
+          fi
+
+      # - name: Upload To Play Store
+      #   uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
+      #   with:
+      #     serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+      #     packageName: com.charan.batterytracker
+      #     releaseFile: mobile/build/outputs/bundle/release/*.aab
+      #     track: production
+      #     inAppUpdatePriority: 5
+      #     whatsNewDirectory: whatsnew
+
+      - name: Create GitHub Beta Release
+        if: ${{ env.IS_BETA == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          prerelease: true
+          body_path: release_notes.md
+          files: |
+            mobile/build/outputs/apk/release/*-beta.apk
+            wear/build/outputs/apk/release/*-beta.apk
+            mobile/build/outputs/bundle/release/*.aab
+            wear/build/outputs/bundle/release/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: ${{ env.IS_BETA == 'false' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          prerelease: false
+          body_path: release_notes.md
+          files: |
+            mobile/build/outputs/apk/release/*.apk
+            wear/build/outputs/apk/release/*.apk
+            mobile/build/outputs/bundle/release/*.aab
+            wear/build/outputs/bundle/release/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
