@@ -82,7 +82,7 @@ jobs:
           done
           for file in wear/build/outputs/apk/release/*.apk; do
             if [ -f "$file" ]; then
-              mv "$file" "wear/build/outputs/apk/release/Battery-Tracker-Wear-${VERSION_NAME}${APK_SUFFIX}.apk"
+              mv "$file" "wear/build/outputs/apk/release/Battery-Tracker-Wear-release${APK_SUFFIX}.apk"
             fi
           done
           for file in mobile/build/outputs/bundle/release/*.aab; do
@@ -92,7 +92,7 @@ jobs:
           done
           for file in wear/build/outputs/bundle/release/*.aab; do
             if [ -f "$file" ]; then
-              mv "$file" "wear/build/outputs/bundle/release/Battery-Tracker-Wear-${VERSION_NAME}.aab"
+              mv "$file" "wear/build/outputs/bundle/release/Battery-Tracker-Wear-release.aab"
             fi
           done
 

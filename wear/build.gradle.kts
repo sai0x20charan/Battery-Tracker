@@ -19,15 +19,12 @@ android {
     namespace = "com.charan.batterytracker"
     compileSdk = 35
 
-    val vCode = providers.gradleProperty("versionCode").map { it.toInt() }.getOrElse(5)
-    val vName = providers.gradleProperty("versionName").getOrElse("1.5")
-
     defaultConfig {
         applicationId = "com.charan.batterytracker"
         minSdk = 26
         targetSdk = 34
-        versionCode = vCode
-        versionName = vName
+        versionCode = 5
+        versionName = "1.5"
         vectorDrawables {
             useSupportLibrary = true
         }
