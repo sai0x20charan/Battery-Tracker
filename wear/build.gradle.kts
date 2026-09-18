@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId = "com.charan.batterytracker"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1001
         versionName = "0.0.1"
         vectorDrawables {
